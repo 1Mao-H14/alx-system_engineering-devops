@@ -1,0 +1,3 @@
+#!/bin/bass
+chmod ugo+x hello
+
