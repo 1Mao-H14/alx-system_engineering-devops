@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#a Bash script that loops from 1 to 10 and:
+i=0
+while [ $i -le 12 ]
+do
+	echo "Hour: $i"
+	((i++))
+	v=1 
+	while [ $v -le 59 ]
+	do
+		echo "$v"
+		((v++))
+	done
+done
