@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# takes 2 two arguments
+
+if [ $# -eq 1 ]; then
+    name_d="www.$1 lb-01.$1 web-01.$1 web-02.$1"
+else
+    name_d="$2.$1"
+fi
+
+dig $name_d | awk '/ANSWER SECTION:/{getline; split($1,b,"."); print "The subdomain", b[1], "is a", $4, "record and points to", $5}'
