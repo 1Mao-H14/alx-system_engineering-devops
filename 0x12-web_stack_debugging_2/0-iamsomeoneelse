@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+usr=$1
+if [ -n "$usr" ];then
+    if grep "^$usr:" /etc/passwd > /dev/null 2>&1;then
+        sudo -u "$usr" whoami
+    fi
+fi
