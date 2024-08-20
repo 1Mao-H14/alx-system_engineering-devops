@@ -1,61 +1,62 @@
 #!/usr/bin/python3
-""" Module for thats contains the count_words function. """
+""" Module thas containes function count_words ."""
 from requests import get
 
 
-def count_words(sub_name, search_terms, term_counts=[], next_page=None):
-  """
-  A function thats :
-  Returns the count of the title inputed . 
-  """
-  user_agent = {'User-Agent': 'HolbertonSchool'}
+def count_words(subreddit, word_list, word_count=[], page_after=None):
+    """
+    RETURNS the count of the given words present in the title of the
+    """
+    headers = {'User-Agent': 'HolbertonSchool'}
 
-  lower_terms = [term.lower() for term in search_terms]
+    word_list = [word.lower() for word in word_list]
 
-  if not term_counts:
-    for term in lower_terms:
-      term_counts.append(0)
+    if bool(word_count) is False:
+        for word in word_list:
+            word_count.append(0)
 
-  if next_page is None:
-    api_url = 'https://www.reddit.com/r/{}/hot.json'.format(sub_name)
-    response = get(api_url, headers=user_agent, allow_redirects=False)
-    if response.status_code == 200:
-      for post in response.json()['data']['children']:
-        term_index = 0
-        for term_index in range(len(lower_terms)):
-          for word in [w for w in post['data']['title'].split()]:
-            word = word.lower()
-            if lower_terms[term_index] == word:
-              term_counts[term_index] += 1
-          term_index += 1
+    if page_after is None:
+        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+        r = get(url, headers=headers, allow_redirects=False)
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
+                i = 0
+                for i in range(len(word_list)):
+                    for word in [w for w in child['data']['title'].split()]:
+                        word = word.lower()
+                        if word_list[i] == word:
+                            word_count[i] += 1
+                    i += 1
 
-      if response.json()['data']['after'] is not None:
-        count_words(sub_name, lower_terms, term_counts, response.json()['data']['after'])
-  else:
-    api_url = ('https://www.reddit.com/r/{}/hot.json?after={}'
-            .format(sub_name, next_page))
-    response = get(api_url, headers=user_agent, allow_redirects=False)
+            if r.json()['data']['after'] is not None:
+                count_words(subreddit, word_list,
+                            word_count, r.json()['data']['after'])
+    else:
+        url = ('https://www.reddit.com/r/{}/hot.json?after={}'
+               .format(subreddit,
+                       page_after))
+        r = get(url, headers=headers, allow_redirects=False)
 
-    if response.status_code == 200:
-      for post in response.json()['data']['children']:
-        term_index = 0
-        for term_index in range(len(lower_terms)):
-          for word in [w for w in post['data']['title'].split()]:
-            word = word.lower()
-            if lower_terms[term_index] == word:
-              term_counts[term_index] += 1
-          term_index += 1
+        if r.status_code == 200:
+            for child in r.json()['data']['children']:
+                i = 0
+                for i in range(len(word_list)):
+                    for word in [w for w in child['data']['title'].split()]:
+                        word = word.lower()
+                        if word_list[i] == word:
+                            word_count[i] += 1
+                    i += 1
+            if r.json()['data']['after'] is not None:
+                count_words(subreddit, word_list,
+                            word_count, r.json()['data']['after'])
+            else:
+                dicto = {}
+                for key_word in list(set(word_list)):
+                    i = word_list.index(key_word)
+                    if word_count[i] != 0:
+                        dicto[word_list[i]] = (word_count[i] *
+                                               word_list.count(word_list[i]))
 
-      if response.json()['data']['after'] is not None:
-        count_words(sub_name, lower_terms, term_counts, response.json()['data']['after'])
-      else:
-        final_counts = {}
-        for key_term in list(set(lower_terms)):
-          term_index = lower_terms.index(key_term)
-          if term_counts[term_index] != 0:
-            final_counts[lower_terms[term_index]] = (term_counts[term_index] *
-                                        lower_terms.count(lower_terms[term_index]))
-
-        for term, count in sorted(final_counts.items(),
-                                 key=lambda x: (-x[1], x[0])):
-          print('{}: {}'.format(term, count))
+                for key, value in sorted(dicto.items(),
+                                         key=lambda x: (-x[1], x[0])):
+                    print('{}: {}'.format(key, value))
