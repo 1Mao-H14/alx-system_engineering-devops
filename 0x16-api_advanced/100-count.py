@@ -1,62 +1,63 @@
 #!/usr/bin/python3
-""" Module that count words storing. """
+""" Module for thats containes count_occurrences function. """
 from requests import get
 
 
-def count_words(subreddit, word_list, word_count=[], page_after=None):
+def count_occurrences(subreddit_id, search_terms, occurrences=[], next_page=None):
     """
-    Prints the count of inputed words present in the title
+    Return the count of title inputed.
     """
     headers = {'User-Agent': 'HolbertonSchool'}
 
-    word_list = [word.lower() for word in word_list]
+    search_terms = [term.lower() for term in search_terms]
 
-    if bool(word_count) is False:
-        for word in word_list:
-            word_count.append(0)
+    if not bool(occurrences) is False:
+        for term in search_terms:
+            occurrences.append(0)
 
-    if page_after is None:
-        url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
-        r = get(url, headers=headers, allow_redirects=False)
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(word_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if word_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
+    if next_page is None:
+        endpoint = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit_id)
+        response = get(endpoint, headers=headers, allow_redirects=False)
+        if response.status_code == 200:
+            for post in response.json()['data']['children']:
+                idx = 0
+                for idx in range(len(search_terms)):
+                    for term in [t for t in post['data']['title'].split()]:
+                        term = term.lower()
+                        if search_terms[idx] == term:
+                            occurrences[idx] += 1
+                    idx += 1
 
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, word_list,
-                            word_count, r.json()['data']['after'])
+            if response.json()['data']['after'] is not None:
+                count_occurrences(subreddit_id, search_terms,
+                                  occurrences, response.json()['data']['after'])
     else:
-        url = ('https://www.reddit.com/r/{}/hot.json?after={}'
-               .format(subreddit,
-                       page_after))
-        r = get(url, headers=headers, allow_redirects=False)
+        endpoint = ('https://www.reddit.com/r/{}/hot.json?after={}'
+                    .format(subreddit_id,
+                            next_page))
+        response = get(endpoint, headers=headers, allow_redirects=False)
 
-        if r.status_code == 200:
-            for child in r.json()['data']['children']:
-                i = 0
-                for i in range(len(word_list)):
-                    for word in [w for w in child['data']['title'].split()]:
-                        word = word.lower()
-                        if word_list[i] == word:
-                            word_count[i] += 1
-                    i += 1
-            if r.json()['data']['after'] is not None:
-                count_words(subreddit, word_list,
-                            word_count, r.json()['data']['after'])
+        if response.status_code == 200:
+            for post in response.json()['data']['children']:
+                idx = 0
+                for idx in range(len(search_terms)):
+                    for term in [t for t in post['data']['title'].split()]:
+                        term = term.lower()
+                        if search_terms[idx] == term:
+                            occurrences[idx] += 1
+                    idx += 1
+            if response.json()['data']['after'] is not None:
+                count_occurrences(subreddit_id, search_terms,
+                                  occurrences, response.json()['data']['after'])
             else:
-                dicto = {}
-                for key_word in list(set(word_list)):
-                    i = word_list.index(key_word)
-                    if word_count[i] != 0:
-                        dicto[word_list[i]] = (word_count[i] *
-                                               word_list.count(word_list[i]))
+                result_counts = {}
+                for term in list(set(search_terms)):
+                    idx = search_terms.index(term)
+                    if occurrences[idx] != 0:
+                        result_counts[search_terms[idx]] = (occurrences[idx] *
+                                                             search_terms.count(search_terms[idx]))
 
-                for key, value in sorted(dicto.items(),
-                                         key=lambda x: (-x[1], x[0])):
-                    print('{}: {}'.format(key, value))
+                for term, count in sorted(result_counts.items(),
+                                          key=lambda x: (-x[1], x[0])):
+                    print('{}: {}'.format(term, count))
+
