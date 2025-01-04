@@ -9,7 +9,7 @@
 cp /etc/hosts temp_file
 
 face_ip=$( sudo awk '/facebook.com/ { print $1 }' /etc/hosts )
-local_ip=$( sudo awk '/localhost/ { print $1 }' /etc/hosts )
+local_ip=$( sudo awk '/localhost$/ { print $1 }' /etc/hosts )
 
 if [[ -n $face_ip ]]; then
     sed -i.back "s/$face_ip/8.8.8.8/" ./temp_file
@@ -18,9 +18,9 @@ else
 fi
 
 if [[ -n $local_ip ]]; then
-    sed -i "s/$local_ip/127.0.0.2 /" ./temp_file
+    sed -i "s/$local_ip/127.0.0.2/" ./temp_file
 else
-    echo -e "127.0.0.2\tlocalhost " >> ./temp_file
+    echo -e "127.0.0.2\tlocalhost" >> ./temp_file
 fi
 
 sudo cp -f temp_file /etc/hosts
