@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# a Bash script that listens on port 98 on localhost.
+while read -r lines; do
+    echo "$lines"
+done < <( nc -l -p 98 )
